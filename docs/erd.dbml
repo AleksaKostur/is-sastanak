@@ -1,0 +1,128 @@
+Table org_units {
+  id int [pk, increment]
+  name varchar [not null]
+  parent_id int [note: 'hijerarhija celina, NULL za koren']
+}
+
+Table users {
+  id int [pk, increment]
+  org_unit_id int [not null, ref: > org_units.id]
+  first_name varchar [not null]
+  father_name varchar [not null]
+  last_name varchar [not null]
+  jmbg varchar(13) [unique, not null]
+  job_title varchar [not null]
+  work_phone varchar
+  mobile_phone varchar
+  email varchar [unique, not null]
+  password_hash varchar [not null]
+  is_active bool [default: true]
+  created_at timestamp
+}
+
+Table roles {
+  id int [pk, increment]
+  name varchar [unique, not null, note: 'ADMIN, RUKOVODILAC, ZAPISNICAR, UCESNIK']
+}
+
+Table user_roles {
+  id int [pk, increment]
+  user_id int [not null, ref: > users.id]
+  role_id int [not null, ref: > roles.id]
+  org_unit_id int [note: 'za rukovodioca - celina kojom rukovodi']
+  is_permanent bool [not null, default: true]
+  valid_from date
+  valid_to date [note: 'NULL za stalne']
+  note text [note: 'napomena za privremene uloge']
+}
+
+Table meeting_categories {
+  id int [pk, increment]
+  name varchar [unique, not null, note: 'referisanje, savet, sluzbeni razgovor, radni tim, komisija, analiza, kolegijum']
+}
+
+Table meetings {
+  id int [pk, increment]
+  topic varchar [not null]
+  category_id int [not null, ref: > meeting_categories.id]
+  organizer_id int [not null, ref: > users.id, note: 'rukovodilac sastanka']
+  org_unit_id int [not null, ref: > org_units.id, note: 'celina u kojoj se odrzava']
+  meeting_type varchar [not null, note: 'STALNI ili VANREDNI']
+  recurrence varchar [note: 'DNEVNI/NEDELJNI/MESECNI/TROMESECNI/SESTOMESECNI/GODISNJI, NULL za vanredne']
+  scheduled_at timestamp [not null]
+  location varchar [not null]
+  room varchar [not null]
+  status varchar [not null, default: 'PLANIRAN', note: 'PLANIRAN/ODRZAN/ODLOZEN/OTKAZAN']
+  status_reason text [note: 'obrazlozenje odlaganja/otkazivanja']
+  act_number varchar [note: 'delovodni broj ako je iniciran aktom']
+  act_date date
+  act_organization varchar
+  intro text [note: 'uvodna rec rukovodioca']
+  conclusion text [note: 'zakljucak']
+  created_at timestamp
+}
+
+Table agenda_items {
+  id int [pk, increment]
+  meeting_id int [not null, ref: > meetings.id]
+  order_no int [not null]
+  title varchar [not null]
+  discussion text [note: 'diskusija po tacki']
+}
+
+Table agenda_proposals {
+  id int [pk, increment]
+  agenda_item_id int [not null, ref: > agenda_items.id]
+  participant_id int [note: 'ko je izneo predlog']
+  content text [not null]
+}
+
+Table meeting_participants {
+  id int [pk, increment]
+  meeting_id int [not null, ref: > meetings.id]
+  user_id int [note: 'NULL za eksterna lica']
+  external_person_id int [note: 'NULL za zaposlene']
+  role_in_meeting varchar [not null, note: 'RUKOVODILAC/ZAPISNICAR/UCESNIK']
+  is_planned bool [not null, default: true]
+  attended bool [note: 'NULL dok se ne evidentira']
+  substitute_for_id int [note: 'ako je zamena, koga menja']
+  recorded_at timestamp [note: '72h pravilo']
+}
+
+Table external_persons {
+  id int [pk, increment]
+  organization varchar [not null]
+  first_name varchar [not null]
+  last_name varchar [not null]
+  job_title varchar
+  country varchar [note: 'ako nisu drzavljani RS']
+  rank varchar [note: 'cin']
+}
+
+Table notifications {
+  id int [pk, increment]
+  user_id int [not null, ref: > users.id]
+  meeting_id int [note: 'NULL za sistemske notifikacije']
+  type varchar [not null, note: 'USPESNO/NEUSPESNO/PROMENA_OD_DRUGOG']
+  message text [not null]
+  is_read bool [default: false]
+  created_at timestamp
+}
+
+Table reports {
+  id int [pk, increment]
+  requested_by int [not null, ref: > users.id]
+  report_type varchar [not null, note: 'SKRACENI/POTPUNI/SUMARNI']
+  period varchar [note: 'NEDELJNI/MESECNI/GODISNJI za sumarne']
+  meeting_id int [note: 'za skraceni/potpuni']
+  generated_at timestamp
+}
+
+Ref: org_units.parent_id >? org_units.id
+Ref: user_roles.org_unit_id >? org_units.id
+Ref: agenda_proposals.participant_id >? meeting_participants.id
+Ref: meeting_participants.user_id >? users.id
+Ref: meeting_participants.external_person_id >? external_persons.id
+Ref: meeting_participants.substitute_for_id >? meeting_participants.id
+Ref: notifications.meeting_id >? meetings.id
+Ref: reports.meeting_id >? meetings.id
