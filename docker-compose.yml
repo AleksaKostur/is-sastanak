@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: sastanak
+      POSTGRES_PASSWORD: sastanak
+      POSTGRES_DB: sastanak
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docs/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+  auth-service:
+    build: ./services/auth-service
+    environment:
+      DATABASE_URL: postgresql://sastanak:sastanak@db:5432/sastanak
+    ports:
+      - "8001:8000"
+    depends_on:
+      - db
+
+  meeting-service:
+    build: ./services/meeting-service
+    environment:
+      DATABASE_URL: postgresql://sastanak:sastanak@db:5432/sastanak
+    ports:
+      - "8002:8000"
+    depends_on:
+      - db
+
+  report-service:
+    build: ./services/report-service
+    environment:
+      DATABASE_URL: postgresql://sastanak:sastanak@db:5432/sastanak
+    ports:
+      - "8003:8000"
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
