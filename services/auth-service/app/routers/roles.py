@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from ..database import get_db
+from ..dependencies import AdminOnly, AnyAuthenticated
 from ..models import Role, UserRole, User, OrgUnit
 from ..schemas import UserRoleAssign, UserRoleOut
 
@@ -10,13 +11,15 @@ router = APIRouter()
 
 
 @router.get("/", response_model=List[dict])
-def list_roles(db: Session = Depends(get_db)):
+def list_roles(db: Session = Depends(get_db),
+               _: User = AnyAuthenticated):
     roles = db.query(Role).all()
     return [{"id": r.id, "name": r.name} for r in roles]
 
 
 @router.post("/assign", response_model=UserRoleOut, status_code=status.HTTP_201_CREATED)
-def assign_role(body: UserRoleAssign, db: Session = Depends(get_db)):
+def assign_role(body: UserRoleAssign, db: Session = Depends(get_db),
+                _: User = AdminOnly):
     # proveri da korisnik postoji
     user = db.query(User).filter(User.id == body.user_id).first()
     if not user:
@@ -59,7 +62,8 @@ def assign_role(body: UserRoleAssign, db: Session = Depends(get_db)):
 
 
 @router.delete("/assign/{user_role_id}", status_code=status.HTTP_204_NO_CONTENT)
-def revoke_role(user_role_id: int, db: Session = Depends(get_db)):
+def revoke_role(user_role_id: int, db: Session = Depends(get_db),
+                _: User = AdminOnly):
     user_role = db.query(UserRole).filter(UserRole.id == user_role_id).first()
     if not user_role:
         raise HTTPException(status_code=404, detail="Dodela uloge ne postoji")
@@ -68,7 +72,8 @@ def revoke_role(user_role_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/user/{user_id}", response_model=List[UserRoleOut])
-def get_user_roles(user_id: int, db: Session = Depends(get_db)):
+def get_user_roles(user_id: int, db: Session = Depends(get_db),
+                   _: User = AnyAuthenticated):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Korisnik ne postoji")
