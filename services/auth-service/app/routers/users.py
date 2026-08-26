@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 
+from ..dependencies import get_current_user, require_roles, AdminOnly, AnyAuthenticated, ManagerOrAdmin
 from ..database import get_db
 from ..models import User, OrgUnit
 from ..schemas import UserCreate, UserOut, UserUpdate
@@ -12,7 +13,8 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 @router.post("/", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-def create_user(user_in: UserCreate, db: Session = Depends(get_db)):
+def create_user(user_in: UserCreate, db: Session = Depends(get_db),
+                _: User = AdminOnly):
     # provera da li email ili JMBG već postoji
     if db.query(User).filter(User.email == user_in.email).first():
         raise HTTPException(status_code=400, detail="Email već postoji")
@@ -43,12 +45,26 @@ def create_user(user_in: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=List[UserOut])
-def list_users(db: Session = Depends(get_db)):
+def list_users(db: Session = Depends(get_db),
+               _: User = ManagerOrAdmin):
     return db.query(User).all()
 
 
 @router.get("/{user_id}", response_model=UserOut)
-def get_user(user_id: int, db: Session = Depends(get_db)):
+def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = AnyAuthenticated,
+):
+    # Korisnik može videti samo sopstvene podatke
+    # Admin i Rukovodilac mogu videti sve
+    is_privileged = any(r in current_user._token_roles for r in ["ADMIN", "RUKOVODILAC"])
+    if not is_privileged and current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Nemate pravo pristupa podacima drugog korisnika"
+        )
+
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Korisnik ne postoji")
@@ -56,7 +72,19 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 
 @router.patch("/{user_id}", response_model=UserOut)
-def update_user(user_id: int, user_in: UserUpdate, db: Session = Depends(get_db)):
+def update_user(
+    user_id: int,
+    user_in: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = AnyAuthenticated,
+):
+    # Samo Admin može menjati tuđe podatke
+    if "ADMIN" not in current_user._token_roles and current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Nemate pravo izmene podataka drugog korisnika"
+        )
+    
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Korisnik ne postoji")
@@ -70,7 +98,8 @@ def update_user(user_id: int, user_in: UserUpdate, db: Session = Depends(get_db)
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def deactivate_user(user_id: int, db: Session = Depends(get_db)):
+def deactivate_user(user_id: int, db: Session = Depends(get_db),
+                    _: User = AdminOnly):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Korisnik ne postoji")
