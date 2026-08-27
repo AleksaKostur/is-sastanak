@@ -15,6 +15,7 @@ services:
     build: ./services/auth-service
     environment:
       DATABASE_URL: postgresql://sastanak:sastanak@db:5432/sastanak
+      JWT_SECRET: is-sastanak-secret-2026
     ports:
       - "8001:8000"
     depends_on:
@@ -24,15 +25,17 @@ services:
     build: ./services/meeting-service
     environment:
       DATABASE_URL: postgresql://sastanak:sastanak@db:5432/sastanak
+      JWT_SECRET: is-sastanak-secret-2026
     ports:
       - "8002:8000"
     depends_on:
       - db
-
+      
   report-service:
     build: ./services/report-service
     environment:
       DATABASE_URL: postgresql://sastanak:sastanak@db:5432/sastanak
+      JWT_SECRET: is-sastanak-secret-2026
     ports:
       - "8003:8000"
     depends_on:
