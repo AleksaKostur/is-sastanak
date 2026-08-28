@@ -8,6 +8,7 @@ import secrets
 from ..database import get_db
 from ..models import User
 from ..schemas import LoginRequest, TokenResponse, TokenRefreshRequest
+from ..dependencies import AnyAuthenticated
 from ..config import settings
 
 router = APIRouter()
@@ -87,7 +88,7 @@ def refresh(body: TokenRefreshRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
-def logout(body: TokenRefreshRequest):
+def logout(body: TokenRefreshRequest, _: User = AnyAuthenticated):
     try:
         payload = jwt.decode(body.refresh_token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
         jti = payload.get("jti")
