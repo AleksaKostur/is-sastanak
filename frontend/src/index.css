@@ -1,0 +1,234 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: #f4f6f8;
+  color: #2c3e50;
+}
+
+/* ── Login ── */
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+}
+
+.login-card {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  width: 360px;
+}
+
+.login-card h1 {
+  font-size: 24px;
+  margin-bottom: 4px;
+  color: #2c3e50;
+}
+
+.login-card .subtitle {
+  color: #7f8c8d;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.login-card label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  margin-top: 16px;
+}
+
+.login-card input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #dce1e6;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.login-card input:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.login-card button {
+  width: 100%;
+  margin-top: 24px;
+  padding: 12px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-card button:hover:not(:disabled) {
+  background: #2980b9;
+}
+
+.login-card button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  background: #fdecea;
+  color: #c0392b;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-top: 16px;
+}
+
+/* ── Layout ── */
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 240px;
+  background: #2c3e50;
+  color: white;
+  padding: 24px 0;
+}
+
+.sidebar .logo {
+  padding: 0 24px 24px;
+  font-size: 18px;
+  font-weight: 700;
+  border-bottom: 1px solid #3d5166;
+}
+
+.sidebar nav {
+  margin-top: 16px;
+}
+
+.sidebar nav a {
+  display: block;
+  padding: 12px 24px;
+  color: #bdc3c7;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.sidebar nav a:hover {
+  background: #34495e;
+  color: white;
+}
+
+.sidebar nav a.active {
+  background: #3498db;
+  color: white;
+  font-weight: 600;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  background: white;
+  padding: 16px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.topbar .user-info {
+  font-size: 14px;
+  color: #7f8c8d;
+}
+
+.topbar button {
+  padding: 8px 16px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.page {
+  padding: 32px;
+  flex: 1;
+}
+
+.page h2 {
+  margin-bottom: 24px;
+  font-size: 22px;
+}
+
+/* ── Tabele i kartice ── */
+.card {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid #ecf0f1;
+  font-size: 14px;
+}
+
+th {
+  font-weight: 600;
+  color: #7f8c8d;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.btn {
+  padding: 8px 16px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn:hover { background: #2980b9; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-danger { background: #e74c3c; }
+.btn-danger:hover { background: #c0392b; }
+.btn-success { background: #27ae60; }
+.btn-success:hover { background: #229954; }
+
+.badge {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-planiran { background: #e3f2fd; color: #1976d2; }
+.badge-odrzan { background: #e8f5e9; color: #388e3c; }
+.badge-odlozen { background: #fff3e0; color: #f57c00; }
+.badge-otkazan { background: #ffebee; color: #c62828; }
