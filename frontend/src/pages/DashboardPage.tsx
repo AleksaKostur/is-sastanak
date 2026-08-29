@@ -15,7 +15,10 @@ export function DashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const planirani = meetings.filter((m) => m.status === "PLANIRAN");
+  const now = new Date();
+  const planirani = meetings.filter(
+    (m) => m.status === "PLANIRAN" && new Date(m.scheduled_at) >= now
+  );
   const odrzani = meetings.filter((m) => m.status === "ODRZAN");
 
   if (loading) return <p>Učitavanje...</p>;

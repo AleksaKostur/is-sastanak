@@ -181,6 +181,13 @@ def record_attendance(
     if meeting.status == "OTKAZAN":
         raise HTTPException(400, "Ne može se evidentirati prisustvo na otkazanom sastanku")
 
+    # ne može se evidentirati prisustvo pre početka sastanka
+    if datetime.now() < meeting.scheduled_at:
+        raise HTTPException(
+            400,
+            "Ne može se evidentirati prisustvo pre početka sastanka"
+        )
+
     # 72h pravilo
     deadline = meeting.scheduled_at + timedelta(hours=72)
     if datetime.now() > deadline:

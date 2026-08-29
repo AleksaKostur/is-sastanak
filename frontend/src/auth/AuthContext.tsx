@@ -6,6 +6,7 @@ interface AuthState {
   userId: number | null;
   roles: string[];
   isAuthenticated: boolean;
+  loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   hasRole: (...roles: string[]) => boolean;
@@ -26,6 +27,7 @@ function decodeToken(token: string): TokenPayload | null {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [userId, setUserId] = useState<number | null>(null);
   const [roles, setRoles] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // pri učitavanju aplikacije, pročitaj token iz localStorage
   useEffect(() => {
@@ -37,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRoles(payload.roles);
       }
     }
+    setLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -70,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userId,
         roles,
         isAuthenticated: userId !== null,
+        loading,
         login,
         logout,
         hasRole,

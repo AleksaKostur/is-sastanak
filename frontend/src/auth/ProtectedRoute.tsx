@@ -8,7 +8,11 @@ interface Props {
 }
 
 export function ProtectedRoute({ children, roles }: Props) {
-  const { isAuthenticated, hasRole } = useAuth();
+  const { isAuthenticated, hasRole, loading } = useAuth();
+
+  if (loading) {
+    return <p style={{ padding: "32px" }}>Učitavanje...</p>;
+  }
 
   // nije prijavljen → na login
   if (!isAuthenticated) {
