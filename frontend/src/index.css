@@ -232,3 +232,28 @@ th {
 .badge-odrzan { background: #e8f5e9; color: #388e3c; }
 .badge-odlozen { background: #fff3e0; color: #f57c00; }
 .badge-otkazan { background: #ffebee; color: #c62828; }
+
+/* ── Forme u karticama ── */
+.card label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #2c3e50;
+}
+
+.card input,
+.card select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #dce1e6;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+}
+
+.card input:focus,
+.card select:focus {
+  outline: none;
+  border-color: #3498db;
+}
