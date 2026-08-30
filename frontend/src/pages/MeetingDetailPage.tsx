@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { meetingApi, reportApi } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
+import { meetingApi, reportApi, authApi } from "../api/client";
 import type { Meeting, AgendaItem, Participant, User } from "../types";
 
 export function MeetingDetailPage() {
@@ -45,7 +45,9 @@ export function MeetingDetailPage() {
 
     // korisnici za dropdown (samo admin/rukovodilac mogu listati)
     if (hasRole("ADMIN", "RUKOVODILAC")) {
-      meetingApi.get<User[]>("/../").catch(() => {}); // placeholder
+      authApi.get<User[]>("/users/")
+        .then((res) => setUsers(res.data))
+        .catch(() => {});
     }
   };
 
@@ -134,6 +136,12 @@ export function MeetingDetailPage() {
 
   if (loading) return <p>Učitavanje...</p>;
   if (!meeting) return <p>Sastanak nije pronađen.</p>;
+
+  const userName = (userId: number | null) => {
+    if (userId === null) return null;
+    const u = users.find((x) => x.id === userId);
+    return u ? `${u.first_name} ${u.last_name}` : `ID ${userId}`;
+  };
 
   return (
     <>
@@ -229,7 +237,7 @@ export function MeetingDetailPage() {
             <tbody>
               {participants.map((p) => (
                 <tr key={p.id}>
-                  <td>{p.user_id ?? `ext:${p.external_person_id}`}</td>
+                  <td>{p.user_id ? userName(p.user_id) : `ext:${p.external_person_id}`}</td>
                   <td>{p.role_in_meeting}</td>
                   <td>
                     {p.attended === null ? "-" : p.attended ? "Prisutan" : "Odsutan"}
@@ -250,10 +258,15 @@ export function MeetingDetailPage() {
         )}
         {canManage && meeting.status === "PLANIRAN" && (
           <div style={{ display: "flex", gap: "8px", marginTop: "16px", alignItems: "flex-end" }}>
-            <div style={{ width: "140px" }}>
-              <label>ID korisnika</label>
-              <input type="number" value={selectedUserId}
-                     onChange={(e) => setSelectedUserId(Number(e.target.value))} />
+            <div style={{ width: "200px" }}>
+              <label>Korisnik</label>
+              <select value={selectedUserId}
+                      onChange={(e) => setSelectedUserId(Number(e.target.value))}>
+                <option value="">-- izaberi --</option>
+                {users.filter((u) => u.is_active).map((u) => (
+                  <option key={u.id} value={u.id}>{u.first_name} {u.last_name}</option>
+                ))}
+              </select>
             </div>
             <div style={{ width: "160px" }}>
               <label>Uloga</label>
