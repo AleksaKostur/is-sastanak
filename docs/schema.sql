@@ -12,6 +12,7 @@ CREATE TABLE "users" (
   "last_name" varchar NOT NULL,
   "jmbg" varchar(13) UNIQUE NOT NULL,
   "job_title" varchar NOT NULL,
+  "rank" varchar,
   "work_phone" varchar,
   "mobile_phone" varchar,
   "email" varchar UNIQUE NOT NULL,

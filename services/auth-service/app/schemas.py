@@ -27,6 +27,7 @@ class UserCreate(BaseModel):
     last_name: str
     jmbg: str
     job_title: str
+    rank: Optional[str] = None
     work_phone: Optional[str] = None
     mobile_phone: Optional[str] = None
     email: EmailStr
@@ -47,6 +48,7 @@ class UserOut(BaseModel):
     last_name: str
     jmbg: str
     job_title: str
+    rank: Optional[str]
     work_phone: Optional[str]
     mobile_phone: Optional[str]
     email: str
@@ -60,6 +62,7 @@ class UserUpdate(BaseModel):
     father_name: Optional[str] = None
     last_name: Optional[str] = None
     job_title: Optional[str] = None
+    rank: Optional[str] = None
     work_phone: Optional[str] = None
     mobile_phone: Optional[str] = None
     email: Optional[EmailStr] = None

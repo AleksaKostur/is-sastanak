@@ -25,6 +25,7 @@ export function UsersPage() {
     last_name: "",
     jmbg: "",
     job_title: "",
+    rank: "",
     email: "",
     password: "",
     org_unit_id: 1,
@@ -75,7 +76,7 @@ export function UsersPage() {
       await authApi.post("/users/", form);
       setForm({
         first_name: "", father_name: "", last_name: "", jmbg: "",
-        job_title: "", email: "", password: "", org_unit_id: 1,
+        job_title: "", rank: "", email: "", password: "", org_unit_id: 1,
       });
       setShowForm(false);
       loadData();
@@ -168,6 +169,10 @@ export function UsersPage() {
               <input value={form.job_title} onChange={(e) => updateField("job_title", e.target.value)} />
             </div>
             <div>
+              <label>Čin</label>
+              <input value={form.rank} onChange={(e) => updateField("rank", e.target.value)} />
+            </div>
+            <div>
               <label>Email</label>
               <input type="email" value={form.email} onChange={(e) => updateField("email", e.target.value)} />
             </div>
@@ -222,7 +227,7 @@ export function UsersPage() {
           <thead>
             <tr>
               <th>ID</th><th>Ime i prezime</th><th>Email</th><th>Radno mesto</th>
-              <th>Status</th><th></th>
+              <th>Čin</th><th>Status</th><th></th>
             </tr>
           </thead>
           <tbody>
@@ -232,6 +237,7 @@ export function UsersPage() {
                 <td>{u.first_name} {u.father_name?.[0] ? u.father_name[0] + "." : ""} {u.last_name}</td>
                 <td>{u.email}</td>
                 <td>{u.job_title}</td>
+                <td>{u.rank || "-"}</td>
                 <td>
                   <span className={`badge ${u.is_active ? "badge-odrzan" : "badge-otkazan"}`}>
                     {u.is_active ? "Aktivan" : "Neaktivan"}

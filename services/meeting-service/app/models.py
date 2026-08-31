@@ -29,6 +29,7 @@ class User(Base):
     last_name    = Column(String, nullable=False)
     jmbg         = Column(String(13), unique=True, nullable=False)
     job_title    = Column(String, nullable=False)
+    rank         = Column(String)
     work_phone   = Column(String)
     mobile_phone = Column(String)
     email        = Column(String, unique=True, nullable=False)
@@ -79,6 +80,13 @@ class Meeting(Base):
     participants = relationship("MeetingParticipant", back_populates="meeting",
                                 cascade="all, delete-orphan")
     notifications = relationship("Notification", back_populates="meeting")
+
+    @property
+    def classification(self) -> str:
+        """Izvedeno: MATICNA ako je sastanak u org. celini rukovodioca, inače DRUGA."""
+        if self.organizer and self.org_unit_id == self.organizer.org_unit_id:
+            return "MATICNA"
+        return "DRUGA"
 
 
 class AgendaItem(Base):

@@ -108,6 +108,7 @@ class MeetingOut(BaseModel):
     intro:            Optional[str]
     conclusion:       Optional[str]
     created_at:       Optional[datetime]
+    classification:   Optional[str] = None
 
     model_config = {"from_attributes": True}
 

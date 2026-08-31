@@ -6,6 +6,7 @@ export interface User {
   last_name: string;
   jmbg: string;
   job_title: string;
+  rank: string | null;
   work_phone: string | null;
   mobile_phone: string | null;
   email: string;
@@ -30,6 +31,7 @@ export interface Meeting {
   act_organization: string | null;
   intro: string | null;
   conclusion: string | null;
+  classification?: string;
 }
 
 export interface AgendaItem {

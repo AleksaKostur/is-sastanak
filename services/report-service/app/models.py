@@ -25,6 +25,7 @@ class User(Base):
     last_name    = Column(String, nullable=False)
     jmbg         = Column(String(13), unique=True, nullable=False)
     job_title    = Column(String, nullable=False)
+    rank         = Column(String)
     work_phone   = Column(String)
     mobile_phone = Column(String)
     email        = Column(String, unique=True, nullable=False)

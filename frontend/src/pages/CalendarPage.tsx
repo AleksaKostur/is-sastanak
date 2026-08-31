@@ -22,6 +22,7 @@ export function CalendarPage() {
   const [dateTo, setDateTo] = useState("");
   const [status, setStatus] = useState("");
   const [meetingType, setMeetingType] = useState("");
+  const [classification, setClassification] = useState("");
 
   const loadMeetings = () => {
     setLoading(true);
@@ -31,6 +32,7 @@ export function CalendarPage() {
     if (dateTo) params.date_to = dateTo;
     if (status) params.status = status;
     if (meetingType) params.meeting_type = meetingType;
+    if (classification) params.classification = classification;
 
     meetingApi
       .get<Meeting[]>("/calendar/", { params })
@@ -52,6 +54,7 @@ export function CalendarPage() {
     setDateTo("");
     setStatus("");
     setMeetingType("");
+    setClassification("");
     // učitaj sve nakon reseta
     setTimeout(loadMeetings, 0);
   };
@@ -68,7 +71,7 @@ export function CalendarPage() {
       {/* Filteri */}
       <div className="card">
         <h3 style={{ marginBottom: "16px" }}>Filteri</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "12px" }}>
           <div>
             <label>Od datuma</label>
             <input
@@ -103,6 +106,14 @@ export function CalendarPage() {
               <option value="VANREDNI">Vanredni</option>
             </select>
           </div>
+            <div>
+            <label>Celina</label>
+            <select value={classification} onChange={(e) => setClassification(e.target.value)}>
+              <option value="">Sve</option>
+              <option value="MATICNA">Matična</option>
+              <option value="DRUGA">Druga</option>
+            </select>
+          </div>
         </div>
         <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
           <button className="btn" onClick={loadMeetings}>Primeni filtere</button>
@@ -123,7 +134,7 @@ export function CalendarPage() {
           <table>
             <thead>
               <tr>
-                <th>Tema</th><th>Tip</th><th>Datum</th><th>Mesto</th><th>Status</th><th></th>
+                <th>Tema</th><th>Tip</th><th>Datum</th><th>Mesto</th><th>Celina</th><th>Status</th><th></th>
               </tr>
             </thead>
             <tbody>
@@ -133,6 +144,11 @@ export function CalendarPage() {
                   <td>{m.meeting_type}</td>
                   <td>{new Date(m.scheduled_at).toLocaleString("sr-RS")}</td>
                   <td>{m.location}, {m.room}</td>
+                  <td>
+                    <span className={`badge ${m.classification === "MATICNA" ? "badge-odrzan" : "badge-odlozen"}`}>
+                      {m.classification === "MATICNA" ? "Matična" : "Druga"}
+                    </span>
+                  </td>
                   <td>
                     <span className={`badge ${STATUS_BADGE[m.status]}`}>{m.status}</span>
                   </td>
