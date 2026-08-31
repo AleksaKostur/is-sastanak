@@ -112,6 +112,7 @@ def add_participant(
             type="USPESNO",
             message=f"Dodati ste kao učesnik na sastanak '{meeting.topic}' "
                     f"zakazan za {meeting.scheduled_at.strftime('%d.%m.%Y %H:%M')}.",
+            created_at=datetime.now(),
         )
         db.add(notif)
         db.commit()

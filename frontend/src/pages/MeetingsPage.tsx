@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { meetingApi } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
+import { firstError, validateRequired } from "../utils/validation";
+import { Pagination } from "../components/Pagination";
 import type { Meeting, MeetingCategory } from "../types";
 
 const STATUS_BADGE: Record<string, string> = {
@@ -17,6 +19,8 @@ export function MeetingsPage() {
   const [categories, setCategories] = useState<MeetingCategory[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5;
 
   // polja forme
   const [topic, setTopic] = useState("");
@@ -49,6 +53,20 @@ export function MeetingsPage() {
 
   const handleCreate = async () => {
     setFormError("");
+
+    const validationError = firstError(
+      validateRequired(topic, "Tema"),
+      categoryId === "" ? "Kategorija je obavezna" : null,
+      validateRequired(scheduledAt, "Datum i vreme"),
+      validateRequired(location, "Lokacija"),
+      validateRequired(room, "Sala"),
+      meetingType === "STALNI" && !recurrence ? "Periodičnost je obavezna za stalni sastanak" : null,
+    );
+    if (validationError) {
+      setFormError(validationError);
+      return;
+    }
+
     try {
       await meetingApi.post("/meetings/", {
         topic,
@@ -77,6 +95,11 @@ export function MeetingsPage() {
   };
 
   if (loading) return <p>Učitavanje...</p>;
+
+  const paginatedMeetings = meetings.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   return (
     <>
@@ -166,7 +189,7 @@ export function MeetingsPage() {
               </tr>
             </thead>
             <tbody>
-              {meetings.map((m) => (
+              {paginatedMeetings.map((m) => (
                 <tr key={m.id}>
                   <td>{m.topic}</td>
                   <td>{m.meeting_type}</td>
@@ -182,6 +205,12 @@ export function MeetingsPage() {
             </tbody>
           </table>
         )}
+        <Pagination
+          currentPage={currentPage}
+          totalItems={meetings.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </>
   );

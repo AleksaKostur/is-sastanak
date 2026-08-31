@@ -61,7 +61,7 @@ export function DashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {planirani.map((m) => (
+              {planirani.slice(0, 5).map((m) => (
                 <tr key={m.id}>
                   <td>{m.topic}</td>
                   <td>{new Date(m.scheduled_at).toLocaleString("sr-RS")}</td>

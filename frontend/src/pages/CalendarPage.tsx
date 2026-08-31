@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { meetingApi } from "../api/client";
+import { Pagination } from "../components/Pagination";
 import type { Meeting } from "../types";
 
 const STATUS_BADGE: Record<string, string> = {
@@ -13,6 +14,8 @@ const STATUS_BADGE: Record<string, string> = {
 export function CalendarPage() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5;
 
   // filteri
   const [dateFrom, setDateFrom] = useState("");
@@ -31,7 +34,10 @@ export function CalendarPage() {
 
     meetingApi
       .get<Meeting[]>("/calendar/", { params })
-      .then((res) => setMeetings(res.data))
+      .then((res) => {
+        setMeetings(res.data);
+        setCurrentPage(1);
+      })
       .catch(() => setMeetings([]))
       .finally(() => setLoading(false));
   };
@@ -49,6 +55,11 @@ export function CalendarPage() {
     // učitaj sve nakon reseta
     setTimeout(loadMeetings, 0);
   };
+
+  const paginatedMeetings = meetings.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   return (
     <>
@@ -108,6 +119,7 @@ export function CalendarPage() {
         ) : meetings.length === 0 ? (
           <p style={{ color: "#7f8c8d" }}>Nema sastanaka za izabrane filtere.</p>
         ) : (
+        <>
           <table>
             <thead>
               <tr>
@@ -115,7 +127,7 @@ export function CalendarPage() {
               </tr>
             </thead>
             <tbody>
-              {meetings.map((m) => (
+              {paginatedMeetings.map((m) => (
                 <tr key={m.id}>
                   <td>{m.topic}</td>
                   <td>{m.meeting_type}</td>
@@ -131,6 +143,13 @@ export function CalendarPage() {
               ))}
             </tbody>
           </table>
+          <Pagination
+            currentPage={currentPage}
+            totalItems={meetings.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+          />
+        </>
         )}
       </div>
     </>

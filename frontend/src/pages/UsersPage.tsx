@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { authApi } from "../api/client";
+import { firstError, validateRequired, validateJMBG, validateEmail, validatePassword } from "../utils/validation";
+import { Pagination } from "../components/Pagination";
 import type { User } from "../types";
 
 interface Role {
@@ -13,6 +15,8 @@ export function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5;
 
   // forma za novog korisnika
   const [form, setForm] = useState({
@@ -52,6 +56,21 @@ export function UsersPage() {
 
   const createUser = async () => {
     setError("");
+
+    // client-side validacija
+    const validationError = firstError(
+      validateRequired(form.first_name, "Ime"),
+      validateRequired(form.last_name, "Prezime"),
+      validateJMBG(form.jmbg),
+      validateRequired(form.job_title, "Radno mesto"),
+      validateEmail(form.email),
+      validatePassword(form.password),
+    );
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     try {
       await authApi.post("/users/", form);
       setForm({
@@ -107,6 +126,11 @@ export function UsersPage() {
   };
 
   if (loading) return <p>Učitavanje...</p>;
+
+  const paginatedUsers = users.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   return (
     <>
@@ -202,7 +226,7 @@ export function UsersPage() {
             </tr>
           </thead>
           <tbody>
-            {users.map((u) => (
+            {paginatedUsers.map((u) => (
               <tr key={u.id}>
                 <td>{u.id}</td>
                 <td>{u.first_name} {u.father_name?.[0] ? u.father_name[0] + "." : ""} {u.last_name}</td>
@@ -224,6 +248,12 @@ export function UsersPage() {
             ))}
           </tbody>
         </table>
+        <Pagination
+          currentPage={currentPage}
+          totalItems={users.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </>
   );

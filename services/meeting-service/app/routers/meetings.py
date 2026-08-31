@@ -79,6 +79,7 @@ def create_meeting(
         meeting_id=meeting.id,
         type="USPESNO",
         message=f"Sastanak '{meeting.topic}' je uspešno zakazan za {meeting.scheduled_at.strftime('%d.%m.%Y %H:%M')}.",
+        created_at=datetime.now(),
     )
     db.add(notif)
     db.commit()
@@ -136,6 +137,7 @@ def update_status(
                 meeting_id=meeting.id,
                 type="PROMENA_OD_DRUGOG",
                 message=f"Status sastanka '{meeting.topic}' promenjen: {old_status} → {body.status.value}.",
+                created_at=datetime.now(),
             )
             db.add(notif)
     db.commit()
