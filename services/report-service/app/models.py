@@ -77,6 +77,14 @@ class AgendaItem(Base):
     discussion = Column(Text)
 
 
+class AgendaProposal(Base):
+    __tablename__ = "agenda_proposals"
+    id             = Column(Integer, primary_key=True)
+    agenda_item_id = Column(Integer, ForeignKey("agenda_items.id"), nullable=False)
+    participant_id = Column(Integer, ForeignKey("meeting_participants.id"), nullable=True)
+    content        = Column(Text, nullable=False)
+
+
 class ExternalPerson(Base):
     __tablename__ = "external_persons"
     id           = Column(Integer, primary_key=True)

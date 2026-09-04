@@ -1,6 +1,7 @@
 import io
 from datetime import datetime
 
+
 # ── PDF (reportlab) ───────────────────────────────────────────────────────
 
 def generate_pdf(data: dict) -> bytes:
@@ -15,7 +16,6 @@ def generate_pdf(data: dict) -> bytes:
     from reportlab.pdfbase.ttfonts import TTFont
     import os
 
-    # registruj Veru (ima srpsku latinicu) — dolazi uz reportlab
     font_dir = os.path.join(os.path.dirname(__import__("reportlab").__file__), "fonts")
     pdfmetrics.registerFont(TTFont("Vera", os.path.join(font_dir, "Vera.ttf")))
     pdfmetrics.registerFont(TTFont("Vera-Bold", os.path.join(font_dir, "VeraBd.ttf")))
@@ -30,6 +30,10 @@ def generate_pdf(data: dict) -> bytes:
     story = []
 
     m = data["meeting"]
+
+    # zaglavlje: rukovodilac
+    story.append(Paragraph(f"<b>Rukovodilac sastanka:</b> {data['organizer_name']}", styles["Normal"]))
+    story.append(Spacer(1, 0.3*cm))
     story.append(Paragraph("ZAPISNIK SA SASTANKA", title_style))
     story.append(Spacer(1, 0.5*cm))
 
@@ -38,7 +42,6 @@ def generate_pdf(data: dict) -> bytes:
         ["Tema:", m.topic],
         ["Kategorija:", data["category_name"]],
         ["Organizaciona celina:", data["org_unit_name"]],
-        ["Organizator:", data["organizer_name"]],
         ["Tip:", m.meeting_type],
         ["Zakazano:", m.scheduled_at.strftime("%d.%m.%Y %H:%M")],
         ["Mesto:", f"{m.location}, {m.room}"],
@@ -60,12 +63,18 @@ def generate_pdf(data: dict) -> bytes:
         story.append(Paragraph(m.intro, styles["Normal"]))
         story.append(Spacer(1, 0.3*cm))
 
-    # dnevni red
+    # dnevni red sa predlozima
     story.append(Paragraph("<b>Dnevni red:</b>", styles["Normal"]))
-    for item in data["agenda"]:
+    for entry in data["agenda"]:
+        item = entry["item"]
         story.append(Paragraph(f"{item.order_no}. {item.title}", styles["Normal"]))
         if item.discussion:
             story.append(Paragraph(f"<i>Diskusija:</i> {item.discussion}", styles["Normal"]))
+        for pr in entry["proposals"]:
+            story.append(Paragraph(
+                f"    <b>{pr['ucesnik']}:</b> {pr['sadrzaj']}",
+                styles["Normal"]
+            ))
     story.append(Spacer(1, 0.3*cm))
 
     # učesnici
@@ -91,7 +100,12 @@ def generate_pdf(data: dict) -> bytes:
         story.append(Paragraph("<b>Zaključak:</b>", styles["Normal"]))
         story.append(Paragraph(m.conclusion, styles["Normal"]))
 
+    # podnožje: zapisničar
     story.append(Spacer(1, 1*cm))
+    story.append(Paragraph(
+        f"<b>Zapisničar:</b> {data['recorder_name']}",
+        styles["Normal"]
+    ))
     story.append(Paragraph(
         f"<i>Generisano: {datetime.now().strftime('%d.%m.%Y %H:%M')}</i>",
         styles["Normal"]
@@ -117,7 +131,7 @@ def generate_xlsx(data: dict) -> bytes:
     header_font = Font(bold=True, color="FFFFFF")
     bold = Font(bold=True)
 
-    # zaglavlje sastanka
+    # zaglavlje
     ws["A1"] = "IZVEŠTAJ O PRISUSTVU"
     ws["A1"].font = Font(bold=True, size=14)
     ws.merge_cells("A1:E1")
@@ -125,7 +139,8 @@ def generate_xlsx(data: dict) -> bytes:
     rows_info = [
         ("Tema:", m.topic),
         ("Zakazano:", m.scheduled_at.strftime("%d.%m.%Y %H:%M")),
-        ("Organizator:", data["organizer_name"]),
+        ("Rukovodilac:", data["organizer_name"]),
+        ("Zapisničar:", data["recorder_name"]),
         ("Status:", m.status),
     ]
     r = 3
@@ -152,7 +167,6 @@ def generate_xlsx(data: dict) -> bytes:
         ws.cell(row=r, column=5, value=p["prisustvo"])
         r += 1
 
-    # širine kolona
     for col, width in zip("ABCDE", [25, 15, 20, 12, 12]):
         ws.column_dimensions[col].width = width
 
@@ -172,6 +186,12 @@ def generate_docx(data: dict) -> bytes:
     doc = Document()
     m = data["meeting"]
 
+    # zaglavlje: rukovodilac
+    p_head = doc.add_paragraph()
+    p_head.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    run = p_head.add_run(f"Rukovodilac sastanka: {data['organizer_name']}")
+    run.bold = True
+
     title = doc.add_heading("ZAPISNIK SA SASTANKA", level=0)
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
@@ -180,7 +200,6 @@ def generate_docx(data: dict) -> bytes:
         ("Tema", m.topic),
         ("Kategorija", data["category_name"]),
         ("Organizaciona celina", data["org_unit_name"]),
-        ("Organizator", data["organizer_name"]),
         ("Tip", m.meeting_type),
         ("Zakazano", m.scheduled_at.strftime("%d.%m.%Y %H:%M")),
         ("Mesto", f"{m.location}, {m.room}"),
@@ -196,14 +215,20 @@ def generate_docx(data: dict) -> bytes:
         doc.add_heading("Uvodna reč", level=1)
         doc.add_paragraph(m.intro)
 
-    # dnevni red
+    # dnevni red sa predlozima
     doc.add_heading("Dnevni red", level=1)
-    for item in data["agenda"]:
+    for entry in data["agenda"]:
+        item = entry["item"]
         doc.add_paragraph(f"{item.order_no}. {item.title}", style="List Number")
         if item.discussion:
             p = doc.add_paragraph()
             run = p.add_run(f"Diskusija: {item.discussion}")
             run.italic = True
+        for pr in entry["proposals"]:
+            p = doc.add_paragraph()
+            run_name = p.add_run(f"{pr['ucesnik']}: ")
+            run_name.bold = True
+            p.add_run(pr['sadrzaj'])
 
     # učesnici
     doc.add_heading("Učesnici", level=1)
@@ -223,6 +248,12 @@ def generate_docx(data: dict) -> bytes:
     if m.conclusion:
         doc.add_heading("Zaključak", level=1)
         doc.add_paragraph(m.conclusion)
+
+    # podnožje: zapisničar
+    doc.add_paragraph("")
+    p_footer = doc.add_paragraph()
+    run = p_footer.add_run(f"Zapisničar: {data['recorder_name']}")
+    run.bold = True
 
     buffer = io.BytesIO()
     doc.save(buffer)

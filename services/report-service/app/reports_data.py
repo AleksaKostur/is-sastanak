@@ -1,5 +1,15 @@
 from sqlalchemy.orm import Session
-from .models import Meeting, AgendaItem, MeetingParticipant, User, ExternalPerson, MeetingCategory, OrgUnit
+from .models import Meeting, AgendaItem, AgendaProposal, MeetingParticipant, User, ExternalPerson, MeetingCategory, OrgUnit
+
+
+def _resolve_participant_name(p, db):
+    """Razrešava ime učesnika (interni ili eksterni)."""
+    if p.user_id:
+        u = db.query(User).filter(User.id == p.user_id).first()
+        return f"{u.first_name} {u.last_name}" if u else "N/A"
+    else:
+        e = db.query(ExternalPerson).filter(ExternalPerson.id == p.external_person_id).first()
+        return f"{e.first_name} {e.last_name}" if e else "N/A"
 
 
 def gather_meeting_data(meeting_id: int, db: Session) -> dict:
@@ -20,18 +30,14 @@ def gather_meeting_data(meeting_id: int, db: Session) -> dict:
         MeetingParticipant.meeting_id == meeting_id
     ).all()
 
-    # razreši imena učesnika (interni vs eksterni)
+    # mapiraj participant id na ime (za predloge)
+    participant_name_map = {}
+    for p in participants:
+        participant_name_map[p.id] = _resolve_participant_name(p, db)
+
+    # razreši imena učesnika za tabelu
     participant_rows = []
     for p in participants:
-        if p.user_id:
-            u = db.query(User).filter(User.id == p.user_id).first()
-            ime = f"{u.first_name} {u.last_name}" if u else "N/A"
-            org = "interni"
-        else:
-            e = db.query(ExternalPerson).filter(ExternalPerson.id == p.external_person_id).first()
-            ime = f"{e.first_name} {e.last_name}" if e else "N/A"
-            org = e.organization if e else "N/A"
-
         prisustvo = "N/A"
         if p.attended is True:
             prisustvo = "Prisutan"
@@ -39,18 +45,47 @@ def gather_meeting_data(meeting_id: int, db: Session) -> dict:
             prisustvo = "Odsutan"
 
         participant_rows.append({
-            "ime": ime,
+            "ime": participant_name_map[p.id],
             "uloga": p.role_in_meeting,
-            "organizacija": org,
+            "organizacija": "interni" if p.user_id else (
+                db.query(ExternalPerson).filter(ExternalPerson.id == p.external_person_id).first().organization
+                if p.external_person_id else "N/A"
+            ),
             "planiran": "Da" if p.is_planned else "Ne",
             "prisustvo": prisustvo,
         })
+
+    # predlozi po tačkama dnevnog reda
+    agenda_with_proposals = []
+    for item in agenda:
+        proposals = db.query(AgendaProposal).filter(
+            AgendaProposal.agenda_item_id == item.id
+        ).all()
+        proposal_rows = []
+        for pr in proposals:
+            name = participant_name_map.get(pr.participant_id, "N/A") if pr.participant_id else "N/A"
+            proposal_rows.append({
+                "ucesnik": name,
+                "sadrzaj": pr.content,
+            })
+        agenda_with_proposals.append({
+            "item": item,
+            "proposals": proposal_rows,
+        })
+
+    # pronađi zapisničara
+    recorder_name = "N/A"
+    for p in participants:
+        if p.role_in_meeting == "ZAPISNICAR":
+            recorder_name = participant_name_map[p.id]
+            break
 
     return {
         "meeting": meeting,
         "category_name": category.name if category else "N/A",
         "org_unit_name": org_unit.name if org_unit else "N/A",
         "organizer_name": f"{organizer.first_name} {organizer.last_name}" if organizer else "N/A",
-        "agenda": agenda,
+        "recorder_name": recorder_name,
+        "agenda": agenda_with_proposals,
         "participants": participant_rows,
     }
