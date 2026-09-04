@@ -12,3 +12,21 @@ class ReportOut(BaseModel):
     generated_at: Optional[datetime]
 
     model_config = {"from_attributes": True}
+
+
+class AttendanceSummary(BaseModel):
+    user_id: int
+    user_name: str
+    weekly: int
+    monthly: int
+    yearly: int
+
+
+class AttendanceReportItem(BaseModel):
+    meeting_id: int
+    topic: str
+    scheduled_at: datetime
+    status: str
+    agenda_items: list[str]
+
+    model_config = {"from_attributes": True}
