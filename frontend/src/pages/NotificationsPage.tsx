@@ -120,7 +120,7 @@ export function NotificationsPage() {
                   <div style={{ fontSize: "14px" }}>{n.message}</div>
                   {n.created_at && (
                     <div style={{ fontSize: "12px", color: "#95a5a6", marginTop: "4px" }}>
-                      {new Date(n.created_at).toLocaleString("sr-RS")}
+                      {new Date(n.created_at + "Z").toLocaleString("sr-RS")}
                     </div>
                   )}
                 </div>

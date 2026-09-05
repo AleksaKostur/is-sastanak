@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
 
 from ..database import get_db
 from ..models import Meeting, MeetingCategory, OrgUnit, User, MeetingParticipant, Notification
@@ -79,7 +79,7 @@ def create_meeting(
         meeting_id=meeting.id,
         type="USPESNO",
         message=f"Sastanak '{meeting.topic}' je uspešno zakazan za {meeting.scheduled_at.strftime('%d.%m.%Y %H:%M')}.",
-        created_at=datetime.now(),
+        created_at=datetime.now(timezone.utc),
     )
     db.add(notif)
     db.commit()
@@ -137,7 +137,7 @@ def update_status(
                 meeting_id=meeting.id,
                 type="PROMENA_OD_DRUGOG",
                 message=f"Status sastanka '{meeting.topic}' promenjen: {old_status} → {body.status.value}.",
-                created_at=datetime.now(),
+                created_at=datetime.now(timezone.utc),
             )
             db.add(notif)
     db.commit()

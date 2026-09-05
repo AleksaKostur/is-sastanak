@@ -55,9 +55,13 @@ export function CalendarPage() {
     setStatus("");
     setMeetingType("");
     setClassification("");
-    // učitaj sve nakon reseta
-    setTimeout(loadMeetings, 0);
+    setCurrentPage(1);
   };
+
+  useEffect(() => {
+    loadMeetings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateFrom, dateTo, status, meetingType, classification]);
 
   const paginatedMeetings = meetings.slice(
     (currentPage - 1) * pageSize,

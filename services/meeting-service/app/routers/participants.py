@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from ..database import get_db
 from ..models import Meeting, MeetingParticipant, ExternalPerson, User, Notification
@@ -112,7 +112,7 @@ def add_participant(
             type="USPESNO",
             message=f"Dodati ste kao učesnik na sastanak '{meeting.topic}' "
                     f"zakazan za {meeting.scheduled_at.strftime('%d.%m.%Y %H:%M')}.",
-            created_at=datetime.now(),
+            created_at=datetime.now(timezone.utc),
         )
         db.add(notif)
         db.commit()
