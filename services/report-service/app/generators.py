@@ -1,5 +1,6 @@
 import io
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+_LOCAL_TZ = timezone(timedelta(hours=2))
 
 
 # ── PDF (reportlab) ───────────────────────────────────────────────────────
@@ -107,7 +108,7 @@ def generate_pdf(data: dict) -> bytes:
         styles["Normal"]
     ))
     story.append(Paragraph(
-        f"<i>Generisano: {datetime.now().strftime('%d.%m.%Y %H:%M')}</i>",
+        f"<i>Generisano: {datetime.now(_LOCAL_TZ).strftime('%d.%m.%Y %H:%M')}</i>",
         styles["Normal"]
     ))
 

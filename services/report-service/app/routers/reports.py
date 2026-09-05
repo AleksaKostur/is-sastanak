@@ -3,7 +3,8 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import List
 import io
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
+_LOCAL_TZ = timezone(timedelta(hours=2))
 
 from ..database import get_db
 from ..models import Meeting, MeetingParticipant, AgendaItem, Report, User
@@ -248,7 +249,7 @@ def _generate_attendance_pdf(user_name, period_label, date_from, items) -> bytes
 
     story.append(Spacer(1, 1*cm))
     story.append(Paragraph(
-        f"<i>Generisano: {datetime.now().strftime('%d.%m.%Y %H:%M')}</i>",
+        f"<i>Generisano: {datetime.now(_LOCAL_TZ).strftime('%d.%m.%Y %H:%M')}</i>",
         styles["Normal"],
     ))
 
