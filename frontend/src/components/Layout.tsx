@@ -20,6 +20,7 @@ export function Layout() {
           <NavLink to="/calendar">Kalendar</NavLink>
           <NavLink to="/notifications">Notifikacije</NavLink>
           {hasRole("ADMIN") && <NavLink to="/users">Korisnici</NavLink>}
+          {hasRole("ADMIN", "RUKOVODILAC") && <NavLink to="/external-persons">Eksterna lica</NavLink>}
         </nav>
       </aside>
 

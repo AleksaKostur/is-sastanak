@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { meetingApi, reportApi, authApi } from "../api/client";
-import type { Meeting, AgendaItem, Participant, User } from "../types";
+import type { Meeting, AgendaItem, Participant, User, ExternalPerson } from "../types";
 
 export function MeetingDetailPage() {
   const { id } = useParams();
@@ -23,6 +23,9 @@ export function MeetingDetailPage() {
   const [newItemOrder, setNewItemOrder] = useState<number | "">("");
   const [selectedUserId, setSelectedUserId] = useState<number | "">("");
   const [selectedRole, setSelectedRole] = useState("UCESNIK");
+  const [participantKind, setParticipantKind] = useState<"internal" | "external">("internal");
+  const [selectedExternalId, setSelectedExternalId] = useState<number | "">("");
+  const [externalPeople, setExternalPeople] = useState<ExternalPerson[]>([]);
 
   const isOrganizer = meeting?.organizer_id === userId;
   const canManage = isOrganizer || hasRole("ADMIN");
@@ -47,6 +50,12 @@ export function MeetingDetailPage() {
     if (hasRole("ADMIN", "RUKOVODILAC")) {
       authApi.get<User[]>("/users/")
         .then((res) => setUsers(res.data))
+        .catch(() => {});
+    }
+
+    if (hasRole("ADMIN", "RUKOVODILAC")) {
+      meetingApi.get<ExternalPerson[]>("/meetings/external-persons/list")
+        .then((res) => setExternalPeople(res.data))
         .catch(() => {});
     }
   };
@@ -74,12 +83,16 @@ export function MeetingDetailPage() {
 
   const addParticipant = async () => {
     setParticipantError("");
+    const body: any = { role_in_meeting: selectedRole };
+    if (participantKind === "internal") {
+      body.user_id = Number(selectedUserId);
+    } else {
+      body.external_person_id = Number(selectedExternalId);
+    }
     try {
-      await meetingApi.post(`/meetings/${meetingId}/participants`, {
-        user_id: Number(selectedUserId),
-        role_in_meeting: selectedRole,
-      });
+      await meetingApi.post(`/meetings/${meetingId}/participants`, body);
       setSelectedUserId("");
+      setSelectedExternalId("");
       loadAll();
     } catch (err: any) {
       setParticipantError(err.response?.data?.detail || "Greška pri dodavanju učesnika");
@@ -258,16 +271,37 @@ export function MeetingDetailPage() {
         )}
         {canManage && meeting.status === "PLANIRAN" && (
           <div style={{ display: "flex", gap: "8px", marginTop: "16px", alignItems: "flex-end" }}>
-            <div style={{ width: "200px" }}>
-              <label>Korisnik</label>
-              <select value={selectedUserId}
-                      onChange={(e) => setSelectedUserId(Number(e.target.value))}>
-                <option value="">-- izaberi --</option>
-                {users.filter((u) => u.is_active).map((u) => (
-                  <option key={u.id} value={u.id}>{u.first_name} {u.last_name}</option>
-                ))}
+            <div style={{ width: "140px" }}>
+              <label>Tip</label>
+              <select value={participantKind}
+                      onChange={(e) => setParticipantKind(e.target.value as "internal" | "external")}>
+                <option value="internal">Interni</option>
+                <option value="external">Eksterni</option>
               </select>
             </div>
+            {participantKind === "internal" ? (
+              <div style={{ width: "200px" }}>
+                <label>Korisnik</label>
+                <select value={selectedUserId}
+                        onChange={(e) => setSelectedUserId(Number(e.target.value))}>
+                  <option value="">-- izaberi --</option>
+                  {users.filter((u) => u.is_active).map((u) => (
+                    <option key={u.id} value={u.id}>{u.first_name} {u.last_name}</option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div style={{ width: "220px" }}>
+                <label>Eksterno lice</label>
+                <select value={selectedExternalId}
+                        onChange={(e) => setSelectedExternalId(Number(e.target.value))}>
+                  <option value="">-- izaberi --</option>
+                  {externalPeople.map((p) => (
+                    <option key={p.id} value={p.id}>{p.first_name} {p.last_name} ({p.organization})</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div style={{ width: "160px" }}>
               <label>Uloga</label>
               <select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)}>

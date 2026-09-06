@@ -24,7 +24,7 @@ def _get_meeting_or_404(meeting_id: int, db: Session) -> Meeting:
 
 # ── Eksterna lica ─────────────────────────────────────────────────────────
 
-@router.post("/external-persons", response_model=ExternalPersonOut, status_code=201)
+@router.post("/external-persons/create", response_model=ExternalPersonOut, status_code=201)
 def create_external_person(
     body: ExternalPersonCreate,
     db: Session = Depends(get_db),
@@ -37,7 +37,7 @@ def create_external_person(
     return person
 
 
-@router.get("/external-persons", response_model=List[ExternalPersonOut])
+@router.get("/external-persons/list", response_model=List[ExternalPersonOut])
 def list_external_persons(db: Session = Depends(get_db), _=AnyAuthenticated):
     return db.query(ExternalPerson).all()
 

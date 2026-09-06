@@ -8,6 +8,7 @@ import { MeetingsPage } from "./pages/MeetingsPage";
 import { MeetingDetailPage } from "./pages/MeetingDetailPage";
 import { CalendarPage } from "./pages/CalendarPage";
 import { UsersPage } from "./pages/UsersPage";
+import { ExternalPersonsPage } from "./pages/ExternalPersonsPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
 
 export default function App() {
@@ -38,6 +39,14 @@ export default function App() {
                 </ProtectedRoute>
               } 
             /> 
+            <Route
+              path="external-persons"
+              element={
+                <ProtectedRoute roles={["ADMIN", "RUKOVODILAC"]}>
+                  <ExternalPersonsPage />
+                </ProtectedRoute>
+              }
+            />
           </Route>
         </Routes>
       </BrowserRouter>

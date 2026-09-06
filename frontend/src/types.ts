@@ -75,3 +75,13 @@ export interface TokenPayload {
   type: string;
   exp: number;
 }
+
+export interface ExternalPerson {
+  id: number;
+  organization: string;
+  first_name: string;
+  last_name: string;
+  job_title: string | null;
+  country: string | null;
+  rank: string | null;
+}
